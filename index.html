@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>JB 키즈 전문반 교육일지</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#F5C518;--gold2:#FDE87A;--black:#0F0F0F;--dark:#181818;
+  --card:#212121;--card2:#2A2A2A;--border:#333;--text:#EFEFEF;--muted:#888;
+  --green:#3ECF8E;--red:#FF5C5C;--blue:#5C9DFF;--orange:#FF9A3C;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--black);color:var(--text);min-height:100vh;}
+
+.loading-screen{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;}
+.loading-logo{font-size:22px;font-weight:900;color:var(--gold);}
+.loading-sub{font-size:14px;color:var(--muted);}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.topbar{position:sticky;top:0;z-index:100;background:var(--dark);border-bottom:2px solid var(--gold);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:16px;font-weight:900;color:var(--gold);}
+.logo span{color:var(--text);font-weight:300;font-size:14px;}
+.back-btn{background:none;border:none;color:var(--gold);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;}
+.sync-indicator{font-size:11px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:4px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.screen{display:none;}
+.screen.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.main-wrap{padding:16px;}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.section-row .section-title{margin-bottom:0;}
+.gold-btn{background:var(--gold);color:var(--black);border:none;padding:6px 14px;font-size:12px;font-weight:900;border-radius:20px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+
+.student-table-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
+.student-table{width:100%;border-collapse:collapse;}
+.student-table th{background:var(--gold);color:var(--black);font-size:12px;font-weight:700;padding:10px;text-align:center;}
+.student-table td{font-size:13px;padding:11px 10px;text-align:center;border-bottom:1px solid var(--border);}
+.student-table tr:last-child td{border-bottom:none;}
+.student-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.no-cell{color:var(--muted);font-size:12px;}
+.name-cell{font-weight:700;}
+.grade-cell{color:var(--muted);font-size:12px;}
+.major-badge{display:inline-block;background:rgba(245,197,24,.15);color:var(--gold);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;}
+.minor-cell{font-size:11px;color:var(--muted);line-height:1.6;text-align:left;padding-left:8px;}
+.action-cell{display:flex;gap:6px;justify-content:center;}
+.edit-btn{background:rgba(92,157,255,.15);color:var(--blue);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.del-btn{background:rgba(255,92,92,.15);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+
+.teacher-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(min-width:500px){.teacher-grid{grid-template-columns:repeat(3,1fr);}}
+.teacher-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px 14px;cursor:pointer;transition:border-color .15s,transform .1s;position:relative;overflow:hidden;}
+.teacher-card:active{transform:scale(.97);}
+.teacher-card:hover{border-color:var(--gold);}
+.t-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--black);margin-bottom:10px;}
+.t-name{font-size:15px;font-weight:900;}
+.t-subject{font-size:11px;color:var(--muted);margin-top:3px;}
+.t-count{font-size:11px;color:var(--gold);margin-top:6px;font-weight:700;}
+.t-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px;}
+
+.detail-wrap{padding:16px;}
+.detail-header{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;}
+.detail-avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:var(--black);flex-shrink:0;}
+.detail-name{font-size:20px;font-weight:900;}
+.detail-subject{font-size:13px;color:var(--muted);margin-top:3px;}
+
+.date-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:16px;align-items:center;}
+.date-tabs::-webkit-scrollbar{display:none;}
+.date-tab-wrap{position:relative;flex-shrink:0;}
+.date-tab{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;white-space:nowrap;}
+.date-tab.active{background:var(--gold);border-color:var(--gold);color:var(--black);padding-right:34px;}
+.date-del-btn{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.25);color:var(--black);border:none;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.add-date-btn{flex-shrink:0;padding:8px 14px;border-radius:20px;border:1.5px dashed var(--border);background:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
+
+/* ── 오늘의 숙제 ── */
+.hw-section{background:var(--card);border:1.5px solid var(--gold);border-radius:14px;padding:16px;margin-bottom:16px;}
+.hw-section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.hw-section-label{font-size:14px;font-weight:900;color:var(--gold);}
+.hw-saved{font-size:11px;color:var(--green);font-weight:700;opacity:0;transition:opacity .3s;}
+.hw-saved.show{opacity:1;}
+.hw-textarea{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);padding:12px 14px;font-size:14px;font-family:'Noto Sans KR',sans-serif;resize:none;outline:none;margin-bottom:12px;transition:border-color .15s;line-height:1.7;}
+.hw-textarea:focus{border-color:var(--gold);}
+.hw-save-btn{background:var(--gold);color:var(--black);border:none;padding:10px;font-size:13px;font-weight:900;border-radius:10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;width:100%;}
+
+/* ── 영상 섹션 ── */
+.video-section{background:var(--card);border:1.5px solid var(--blue);border-radius:14px;padding:16px;margin-bottom:16px;}
+.video-section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.video-section-label{font-size:14px;font-weight:900;color:var(--blue);}
+.video-upload-area{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:14px;position:relative;}
+.video-upload-area:hover{border-color:var(--blue);}
+.video-upload-area.dragover{border-color:var(--blue);background:rgba(92,157,255,.05);}
+.video-upload-icon{font-size:32px;margin-bottom:8px;}
+.video-upload-text{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.video-upload-sub{font-size:12px;color:var(--muted);}
+.video-file-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+
+/* 업로드 진행바 */
+.upload-progress-wrap{display:none;margin-bottom:14px;}
+.upload-progress-wrap.show{display:block;}
+.upload-progress-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+.upload-progress-bar-bg{background:var(--border);border-radius:20px;height:8px;overflow:hidden;}
+.upload-progress-bar{background:var(--blue);height:100%;border-radius:20px;transition:width .2s;width:0%;}
+
+/* 영상 목록 */
+.video-list{display:flex;flex-direction:column;gap:10px;}
+.video-item{background:var(--card2);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;}
+.video-item-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;}
+.video-item-info{display:flex;align-items:center;gap:10px;}
+.video-item-icon{font-size:22px;}
+.video-item-name{font-size:13px;font-weight:700;word-break:break-all;}
+.video-item-size{font-size:11px;color:var(--muted);margin-top:2px;}
+.video-item-btns{display:flex;gap:6px;flex-shrink:0;}
+.play-btn{background:rgba(92,157,255,.15);color:var(--blue);border:none;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.video-del-btn{background:rgba(255,92,92,.15);color:var(--red);border:none;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.video-player-wrap{display:none;padding:0 14px 14px;}
+.video-player-wrap.show{display:block;}
+.video-player-wrap video{width:100%;border-radius:8px;background:#000;}
+.video-empty{padding:20px;text-align:center;color:var(--muted);font-size:13px;}
+
+/* 로그 테이블 */
+.log-table-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.log-table-header{background:var(--gold);display:grid;grid-template-columns:2fr 1.2fr 1.5fr 1.5fr;padding:10px 14px;}
+.log-table-header span{font-size:12px;font-weight:700;color:var(--black);text-align:center;}
+.log-table-header span:first-child{text-align:left;}
+.student-log-row{border-bottom:1px solid var(--border);cursor:pointer;}
+.student-log-row:last-child{border-bottom:none;}
+.student-log-row:hover{background:rgba(255,255,255,.03);}
+.log-row-summary{display:grid;grid-template-columns:2fr 1.2fr 1.5fr 1.5fr;padding:12px 14px;align-items:center;}
+.log-sname{font-size:14px;font-weight:700;}
+.log-sgrade{font-size:11px;color:var(--muted);}
+.a-badge{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;margin:0 auto;}
+.a-O{background:rgba(62,207,142,.15);color:var(--green);}
+.a-X{background:rgba(255,92,92,.15);color:var(--red);}
+.a-△{background:rgba(245,197,24,.15);color:var(--gold);}
+.a-none{background:var(--border);color:var(--muted);font-size:12px;}
+.s-badge{padding:3px 10px;border-radius:6px;font-size:13px;font-weight:900;background:var(--border);color:var(--muted);display:block;text-align:center;}
+.s-S{background:rgba(245,197,24,.2);color:var(--gold);}
+.s-A{background:rgba(62,207,142,.2);color:var(--green);}
+.s-B{background:rgba(92,157,255,.2);color:var(--blue);}
+.s-C{background:rgba(255,154,60,.15);color:var(--orange);}
+.s-D{background:rgba(255,92,92,.15);color:var(--red);}
+.hw-cell{text-align:center;font-size:12px;font-weight:700;}
+.hw-done{color:var(--green);}.hw-partial{color:var(--gold);}.hw-none{color:var(--red);}.hw-empty{color:var(--muted);}
+.log-expand{display:none;padding:14px 14px 16px;border-top:1px solid var(--border);background:var(--card2);}
+.log-expand.open{display:block;animation:fadeIn .15s ease;}
+.field-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.8px;margin-bottom:6px;}
+.attend-row,.score-row,.hw-row{display:flex;gap:6px;margin-bottom:14px;}
+.attend-btn,.score-btn,.hw-btn{flex:1;padding:9px 4px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);font-family:'Noto Sans KR',sans-serif;transition:all .1s;}
+.attend-btn.sel-O{background:rgba(62,207,142,.2);border-color:var(--green);color:var(--green);}
+.attend-btn.sel-X{background:rgba(255,92,92,.2);border-color:var(--red);color:var(--red);}
+.attend-btn.sel-△{background:rgba(245,197,24,.2);border-color:var(--gold);color:var(--gold);}
+.score-btn.active{background:var(--gold);border-color:var(--gold);color:var(--black);}
+.hw-btn.sel-done{background:rgba(62,207,142,.2);border-color:var(--green);color:var(--green);}
+.hw-btn.sel-partial{background:rgba(245,197,24,.2);border-color:var(--gold);color:var(--gold);}
+.hw-btn.sel-none{background:rgba(255,92,92,.2);border-color:var(--red);color:var(--red);}
+.note-input{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:10px;color:var(--text);padding:10px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;resize:none;outline:none;margin-bottom:12px;transition:border-color .15s;}
+.note-input:focus{border-color:var(--gold);}
+.save-row{display:flex;justify-content:flex-end;}
+.save-btn{background:var(--gold);color:var(--black);border:none;padding:9px 22px;font-size:13px;font-weight:900;border-radius:10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.saving-btn{background:var(--border);color:var(--muted);}
+
+/* 반 학생 관리 */
+.class-students-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.class-student-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+.class-student-row:last-child{border-bottom:none;}
+.cs-info{display:flex;flex-direction:column;gap:2px;}
+.cs-name{font-size:14px;font-weight:700;}
+.cs-sub{font-size:11px;color:var(--muted);}
+.remove-btn{background:rgba(255,92,92,.15);color:var(--red);border:none;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+
+.student-pick-list{max-height:280px;overflow-y:auto;margin-bottom:14px;}
+.student-pick-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.student-pick-row:last-child{border-bottom:none;}
+.student-pick-row:hover{background:rgba(255,255,255,.03);}
+.pick-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .1s;}
+.pick-check.checked{background:var(--gold);border-color:var(--gold);color:var(--black);}
+.pick-name{font-size:14px;font-weight:700;}
+.pick-sub{font-size:11px;color:var(--muted);}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--dark);border-top:2px solid var(--gold);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-title{font-size:17px;font-weight:900;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.input-field{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:10px;color:var(--text);padding:12px 14px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:10px;transition:border-color .15s;}
+.input-field:focus{border-color:var(--gold);}
+.input-row{display:flex;gap:8px;}
+.input-row .input-field{flex:1;}
+.modal-btns{display:flex;gap:8px;margin-top:4px;}
+.mbtn{flex:1;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.mbtn.cancel{background:var(--border);color:var(--muted);}
+.mbtn.confirm{background:var(--gold);color:var(--black);}
+.mbtn.danger{background:rgba(255,92,92,.15);color:var(--red);border:1.5px solid var(--red);}
+
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--dark);border:1.5px solid var(--border);border-radius:18px;padding:28px 20px;width:100%;max-width:300px;text-align:center;}
+.confirm-icon{font-size:36px;margin-bottom:12px;}
+.confirm-title{font-size:16px;font-weight:900;margin-bottom:8px;}
+.confirm-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5;}
+.confirm-btns{display:flex;gap:8px;}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--gold);color:var(--black);font-size:13px;font-weight:700;padding:10px 22px;border-radius:30px;opacity:0;transition:all .3s;z-index:400;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error{background:var(--red);color:white;}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-logo">🎤 JB 키즈 전문반</div>
+  <div class="loading-sub">Firebase 연결 중...</div>
+</div>
+
+<div class="topbar">
+  <div class="logo">🎤 JB 키즈 <span>교육일지</span></div>
+  <div id="topbarRight"><div class="sync-indicator"><div class="sync-dot"></div>실시간 연결</div></div>
+</div>
+
+<!-- MAIN -->
+<div class="screen active" id="screen-main">
+  <div class="main-wrap">
+    <div class="section-row">
+      <div class="section-title">전체 수강생</div>
+      <button class="gold-btn" onclick="openStudentModal()">+ 학생 추가</button>
+    </div>
+    <div class="student-table-wrap">
+      <table class="student-table" id="mainStudentTable"></table>
+    </div>
+    <div class="section-title">담임 선생님별 수업일지</div>
+    <div class="teacher-grid" id="teacherGrid"></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="screen" id="screen-detail">
+  <div class="detail-wrap">
+    <div class="detail-header">
+      <div class="detail-avatar" id="detailAvatar"></div>
+      <div>
+        <div class="detail-name" id="detailName"></div>
+        <div class="detail-subject" id="detailSubject"></div>
+      </div>
+    </div>
+
+    <div class="section-title">수업 날짜</div>
+    <div class="date-tabs" id="dateTabs"></div>
+
+    <!-- 오늘의 숙제 -->
+    <div class="hw-section">
+      <div class="hw-section-title">
+        <div class="hw-section-label">📝 오늘의 숙제</div>
+        <div class="hw-saved" id="hwSavedLabel">✓ 저장됨</div>
+      </div>
+      <textarea class="hw-textarea" id="hwTextarea" rows="4" placeholder="오늘 수업의 숙제 내용을 입력해주세요...&#10;예) 1. 기본동작 10분 연습&#10;2. 영상 보고 따라하기"></textarea>
+      <button class="hw-save-btn" onclick="saveHw()">💾 숙제 저장</button>
+    </div>
+
+    <!-- 수업 영상 -->
+    <div class="video-section">
+      <div class="video-section-title">
+        <div class="video-section-label">🎬 수업 영상</div>
+        <div id="videoSavedLabel" style="font-size:11px;color:var(--green);font-weight:700;opacity:0;transition:opacity .3s;"></div>
+      </div>
+
+      <div class="video-upload-area" id="videoUploadArea">
+        <input type="file" class="video-file-input" id="videoFileInput" accept="video/*" onchange="handleVideoUpload(event)">
+        <div class="video-upload-icon">🎥</div>
+        <div class="video-upload-text">영상 파일을 선택하거나 여기에 끌어다 놓으세요</div>
+        <div class="video-upload-sub">MP4, MOV, AVI 등 · 최대 500MB</div>
+      </div>
+
+      <div class="upload-progress-wrap" id="uploadProgressWrap">
+        <div class="upload-progress-label">
+          <span id="uploadFileName">업로드 중...</span>
+          <span id="uploadPercent">0%</span>
+        </div>
+        <div class="upload-progress-bar-bg">
+          <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="video-list" id="videoList">
+        <div class="video-empty">아직 업로드된 영상이 없어요</div>
+      </div>
+    </div>
+
+    <!-- 학생별 기록 -->
+    <div class="section-title">학생별 기록</div>
+    <div class="log-table-wrap">
+      <div class="log-table-header">
+        <span>학생</span><span style="text-align:center">출결</span><span style="text-align:center">평가</span><span style="text-align:center">숙제</span>
+      </div>
+      <div id="logRows"></div>
+    </div>
+
+    <!-- 반 학생 관리 -->
+    <div class="section-row" style="margin-top:8px;">
+      <div class="section-title">이 반 수강생 관리</div>
+      <button class="gold-btn" onclick="openAddClassStudentModal()">+ 학생 추가</button>
+    </div>
+    <div class="class-students-wrap" id="classStudentsList"></div>
+  </div>
+</div>
+
+<!-- DATE MODAL -->
+<div class="modal-overlay" id="dateModal">
+  <div class="modal">
+    <div class="modal-title">날짜 추가</div>
+    <div class="modal-sub">수업 날짜를 입력해주세요</div>
+    <input class="input-field" id="dateInput" type="date">
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeDateModal()">취소</button>
+      <button class="mbtn confirm" onclick="confirmAddDate()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 전체 학생 MODAL -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal">
+    <div class="modal-title" id="studentModalTitle">학생 추가</div>
+    <div class="modal-sub" id="studentModalSub">새 학생 정보를 입력해주세요</div>
+    <input class="input-field" id="sName" placeholder="이름 *">
+    <div class="input-row">
+      <input class="input-field" id="sGrade" placeholder="학년 (예: 초5)">
+      <input class="input-field" id="sMajor" placeholder="전공 (예: 왁킹)">
+    </div>
+    <input class="input-field" id="sMinor" placeholder="부전공 (예: 힙합(손주))">
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeStudentModal()">취소</button>
+      <button class="mbtn confirm" id="studentConfirmBtn" onclick="confirmStudent()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 반 학생 추가 MODAL -->
+<div class="modal-overlay" id="addClassStudentModal">
+  <div class="modal">
+    <div class="modal-title">수강생 추가</div>
+    <div class="modal-sub" id="addClassStudentSub">이 반에 추가할 학생을 선택하세요</div>
+    <div class="student-pick-list" id="studentPickList"></div>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeAddClassStudentModal()">취소</button>
+      <button class="mbtn confirm" onclick="confirmAddClassStudents()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <div class="confirm-btns">
+      <button class="mbtn cancel" onclick="closeConfirm()">취소</button>
+      <button class="mbtn danger" id="confirmOkBtn">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref as dbRef, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBAFmvbdxs4vyMvzobzqYYT_TRzw35jMxQ",
+  authDomain:"jb-kids-professional.firebaseapp.com",
+  projectId:"jb-kids-professional",
+  storageBucket:"jb-kids-professional.firebasestorage.app",
+  messagingSenderId:"630775964949",
+  appId:"1:630775964949:web:c105f7d615fe57dde9b51c",
+  measurementId:"G-M2HQYKM72M",
+  databaseURL:"https://jb-kids-professional-default-rtdb.firebaseio.com"
+};
+const app     = initializeApp(firebaseConfig);
+const db      = getDatabase(app);
+const storage = getStorage(app);
+
+const TEACHER_COLORS = ['#F5C518','#3ECF8E','#5C9DFF','#FF9A3C','#FF5C5C','#CC6EFF'];
+const TEACHERS = [
+  {id:'t1',name:'Somuch',    subject:'왁킹'},
+  {id:'t2',name:'Jini',      subject:'소울'},
+  {id:'t3',name:'Jini',      subject:'프리스타일'},
+  {id:'t4',name:'Stonelock', subject:'락킹'},
+  {id:'t5',name:'Udee',      subject:'힙합'},
+  {id:'t6',name:'Mejin',     subject:'팝핑'},
+];
+const DEFAULT_STUDENTS = [
+  {id:'s1',no:1,name:'김민서',grade:'초5',major:'왁킹',    minor:'힙합(손주)'},
+  {id:'s2',no:2,name:'김사랑',grade:'초4',major:'힙합',    minor:'팝핑(브라운티오), 하우스(윤)'},
+  {id:'s3',no:3,name:'김소은',grade:'초6',major:'왁킹',    minor:'락킹(락커화), 힙합(지센스), 팝핑(브라운티오)'},
+  {id:'s4',no:4,name:'김주하',grade:'초6',major:'힙합',    minor:'브레이킹(레드번)'},
+  {id:'s5',no:5,name:'배지호',grade:'초5',major:'브레이킹', minor:'코레오(바올)'},
+  {id:'s6',no:6,name:'양소미',grade:'초5',major:'락킹',    minor:'힙합(지브로)'},
+  {id:'s7',no:7,name:'임사랑',grade:'초6',major:'락킹',    minor:'브레이킹(크래셔)'},
+];
+const DEFAULT_CLASS_STUDENTS = {
+  t1:['s1','s2','s4','s5','s6'],
+  t2:['s1','s2','s3','s4','s5','s6','s7'],
+  t3:['s1','s2','s3','s4','s5','s6','s7'],
+  t4:['s1','s2','s3','s4','s5','s6','s7'],
+  t5:['s1','s2','s3','s4','s5','s6','s7'],
+  t6:['s1','s2','s3','s4','s5','s6','s7'],
+};
+
+let students      = [];
+let teacherDates  = {};
+let classStudents = {};
+let logs          = {};
+let hwData        = {};
+let videos        = {}; // `tid_date` → [{name, url, path, size}]
+let currentTeacher = null;
+let currentDate    = null;
+let openRowKey     = null;
+let editStudentId  = null;
+window._confirmCb  = null;
+let _pickedIds     = new Set();
+let openVideoId    = null;
+
+// ── INIT ──
+async function initData() {
+  try {
+    const sSnap = await get(dbRef(db,'students'));
+    students = sSnap.exists() ? Object.values(sSnap.val()) : [...DEFAULT_STUDENTS];
+    if (!sSnap.exists()) await set(dbRef(db,'students'), Object.fromEntries(students.map(s=>[s.id,s])));
+    students.sort((a,b)=>a.no-b.no);
+
+    const dSnap = await get(dbRef(db,'dates'));
+    if (dSnap.exists()) teacherDates=dSnap.val();
+    else { TEACHERS.forEach(t=>{teacherDates[t.id]=['2026-03-20','2026-03-17','2026-03-10','2026-03-03'];}); await set(dbRef(db,'dates'),teacherDates); }
+
+    const csSnap = await get(dbRef(db,'classStudents'));
+    if (csSnap.exists()) classStudents=csSnap.val();
+    else { classStudents={...DEFAULT_CLASS_STUDENTS}; await set(dbRef(db,'classStudents'),classStudents); }
+
+    const lSnap = await get(dbRef(db,'logs')); if(lSnap.exists()) logs=lSnap.val();
+    const hSnap = await get(dbRef(db,'homework')); if(hSnap.exists()) hwData=hSnap.val();
+    const vSnap = await get(dbRef(db,'videos')); if(vSnap.exists()) videos=vSnap.val();
+
+    document.getElementById('loadingScreen').style.display='none';
+    renderMain();
+
+    onValue(dbRef(db,'students'), snap=>{ students=snap.exists()?Object.values(snap.val()):[]; students.sort((a,b)=>a.no-b.no); renderStudentTable(); if(currentTeacher) renderTeacherGrid(); });
+    onValue(dbRef(db,'classStudents'), snap=>{ classStudents=snap.exists()?snap.val():{}; if(currentTeacher){renderClassStudentsList();renderLogRows();renderTeacherGrid();} });
+    onValue(dbRef(db,'logs'), snap=>{ logs=snap.exists()?snap.val():{}; if(currentTeacher&&currentDate) renderLogRows(); });
+    onValue(dbRef(db,'homework'), snap=>{ hwData=snap.exists()?snap.val():{}; if(currentTeacher&&currentDate) renderHwSection(); });
+    onValue(dbRef(db,'dates'), snap=>{ if(snap.exists()){teacherDates=snap.val(); if(currentTeacher) renderDateTabs();} });
+    onValue(dbRef(db,'videos'), snap=>{ videos=snap.exists()?snap.val():{}; if(currentTeacher&&currentDate) renderVideoList(); });
+
+  } catch(e) {
+    console.error(e); showToast('연결 실패: '+e.message,true);
+    document.getElementById('loadingScreen').style.display='none';
+    students=[...DEFAULT_STUDENTS]; classStudents={...DEFAULT_CLASS_STUDENTS};
+    renderMain();
+  }
+}
+
+// ── MAIN ──
+function renderMain() { renderStudentTable(); renderTeacherGrid(); }
+function renderTeacherGrid() {
+  document.getElementById('teacherGrid').innerHTML = TEACHERS.map((t,i)=>{
+    const cnt=(classStudents[t.id]||[]).length;
+    return `<div class="teacher-card" onclick="window.selectTeacher('${t.id}')">
+      <div class="t-avatar" style="background:${TEACHER_COLORS[i]}">${t.name[0]}</div>
+      <div class="t-name">${t.name}</div>
+      <div class="t-subject">${t.subject}</div>
+      <div class="t-count">수강생 ${cnt}명</div>
+      <div class="t-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+function renderStudentTable() {
+  document.getElementById('mainStudentTable').innerHTML=`
+    <thead><tr><th>NO</th><th>성명</th><th>학년</th><th>전공</th><th>부전공</th><th>관리</th></tr></thead>
+    <tbody>${[...students].sort((a,b)=>a.no-b.no).map(s=>`
+      <tr>
+        <td class="no-cell">${s.no}</td>
+        <td class="name-cell">${s.name}</td>
+        <td class="grade-cell">${s.grade}</td>
+        <td><span class="major-badge">${s.major}</span></td>
+        <td class="minor-cell">${s.minor}</td>
+        <td><div class="action-cell">
+          <button class="edit-btn" onclick="window.openEditStudent('${s.id}')">수정</button>
+          <button class="del-btn"  onclick="window.confirmDelStudent('${s.id}','${s.name}')">삭제</button>
+        </div></td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+// ── 학생 CRUD ──
+function openStudentModal() {
+  editStudentId=null;
+  document.getElementById('studentModalTitle').textContent='학생 추가';
+  document.getElementById('studentModalSub').textContent='새 학생 정보를 입력해주세요';
+  document.getElementById('studentConfirmBtn').textContent='추가';
+  ['sName','sGrade','sMajor','sMinor'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('studentModal').classList.add('open');
+  setTimeout(()=>document.getElementById('sName').focus(),100);
+}
+function openEditStudent(sid) {
+  const s=students.find(st=>st.id===sid); if(!s) return;
+  editStudentId=sid;
+  document.getElementById('studentModalTitle').textContent='학생 수정';
+  document.getElementById('studentModalSub').textContent=s.name+' 정보를 수정해주세요';
+  document.getElementById('studentConfirmBtn').textContent='수정 완료';
+  document.getElementById('sName').value=s.name;
+  document.getElementById('sGrade').value=s.grade;
+  document.getElementById('sMajor').value=s.major;
+  document.getElementById('sMinor').value=s.minor;
+  document.getElementById('studentModal').classList.add('open');
+}
+function closeStudentModal() { document.getElementById('studentModal').classList.remove('open'); }
+async function confirmStudent() {
+  const name=document.getElementById('sName').value.trim();
+  const grade=document.getElementById('sGrade').value.trim();
+  const major=document.getElementById('sMajor').value.trim();
+  const minor=document.getElementById('sMinor').value.trim();
+  if(!name){showToast('이름을 입력해주세요',true);return;}
+  if(editStudentId){
+    const s=students.find(st=>st.id===editStudentId); if(!s) return;
+    await set(dbRef(db,'students/'+editStudentId),{...s,name,grade,major,minor});
+    showToast(name+' 정보가 수정되었습니다 ✓');
+  } else {
+    const newNo=students.length>0?Math.max(...students.map(s=>s.no))+1:1;
+    const newId='s'+Date.now();
+    await set(dbRef(db,'students/'+newId),{id:newId,no:newNo,name,grade,major,minor});
+    showToast(name+' 학생이 추가되었습니다 ✓');
+  }
+  closeStudentModal();
+}
+function confirmDelStudent(sid,name) {
+  showConfirm('🗑️',name+' 학생을 삭제할까요?','삭제하면 이 학생의 모든 기록도 사라져요.',async()=>{
+    await remove(dbRef(db,'students/'+sid)); showToast(name+' 학생이 삭제되었습니다');
+  });
+}
+
+// ── TEACHER ──
+function selectTeacher(tid) {
+  currentTeacher=TEACHERS.find(t=>t.id===tid);
+  const idx=TEACHERS.indexOf(currentTeacher);
+  openRowKey=null; openVideoId=null;
+  currentDate=(teacherDates[tid]||[])[0]||null;
+  document.getElementById('detailAvatar').style.background=TEACHER_COLORS[idx];
+  document.getElementById('detailAvatar').textContent=currentTeacher.name[0];
+  document.getElementById('detailName').textContent=currentTeacher.name+' 선생님';
+  document.getElementById('detailSubject').textContent=currentTeacher.subject+' 전문반';
+  document.getElementById('topbarRight').innerHTML=`<button class="back-btn" onclick="goMain()">← 목록</button>`;
+  renderDateTabs(); renderHwSection(); renderVideoList(); renderLogRows(); renderClassStudentsList();
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-detail').classList.add('active');
+  window.scrollTo(0,0);
+}
+function goMain() {
+  currentTeacher=null; currentDate=null; openRowKey=null; openVideoId=null;
+  document.getElementById('screen-detail').classList.remove('active');
+  document.getElementById('screen-main').classList.add('active');
+  document.getElementById('topbarRight').innerHTML=`<div class="sync-indicator"><div class="sync-dot"></div>실시간 연결</div>`;
+  window.scrollTo(0,0);
+}
+
+// ── DATE TABS ──
+function renderDateTabs() {
+  const dates=teacherDates[currentTeacher.id]||[];
+  document.getElementById('dateTabs').innerHTML=dates.map(d=>`
+    <div class="date-tab-wrap">
+      <button class="date-tab ${d===currentDate?'active':''}" onclick="window._sd('${d}')">${formatDate(d)}</button>
+      ${d===currentDate?`<button class="date-del-btn" onclick="window._dd('${d}')">✕</button>`:''}
+    </div>
+  `).join('')+`<button class="add-date-btn" onclick="window.openDateModal()">+ 날짜 추가</button>`;
+}
+function selectDate(d) { currentDate=d; openRowKey=null; openVideoId=null; renderDateTabs(); renderHwSection(); renderVideoList(); renderLogRows(); }
+window._sd = function(d) { selectDate(d); };
+function confirmDelDate(d) {
+  const label=formatDate(d);
+  showConfirm('📅',label+' 날짜를 삭제할까요?','해당 날짜의 모든 기록이 삭제돼요.',async()=>{
+    const tid=currentTeacher.id;
+    const newDates=(teacherDates[tid]||[]).filter(x=>x!==d);
+    await set(dbRef(db,'dates/'+tid), newDates);
+    teacherDates[tid]=newDates;
+    currentDate=newDates.length>0?newDates[0]:null;
+    renderDateTabs(); renderHwSection(); renderVideoList(); renderLogRows();
+    showToast(label+' 날짜가 삭제되었습니다');
+  });
+}
+window._dd = function(d) { confirmDelDate(d); };
+function formatDate(iso){const[,m,d]=iso.split('-');return`${parseInt(m)}월 ${parseInt(d)}일`;}
+
+// ── 숙제 ──
+function renderHwSection() {
+  if(!currentDate) return;
+  const key=`${currentTeacher.id}_${currentDate.replace(/-/g,'_')}`;
+  const ta=document.getElementById('hwTextarea');
+  if(ta&&document.activeElement!==ta) ta.value=hwData[key]||'';
+}
+async function saveHw() {
+  if(!currentDate) return;
+  const key=`${currentTeacher.id}_${currentDate.replace(/-/g,'_')}`;
+  const val=document.getElementById('hwTextarea').value;
+  hwData[key]=val;
+  try {
+    await set(dbRef(db,'homework/'+key),val);
+    const lb=document.getElementById('hwSavedLabel'); lb.classList.add('show'); setTimeout(()=>lb.classList.remove('show'),2000);
+    showToast('숙제가 저장되었습니다 ✓');
+  } catch(e){showToast('저장 실패',true);}
+}
+
+// ── 영상 업로드 ──
+function getVideoKey() {
+  return `${currentTeacher.id}_${currentDate.replace(/-/g,'_')}`;
+}
+
+async function handleVideoUpload(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  if(!currentDate){showToast('날짜를 먼저 선택해주세요',true);return;}
+  if(file.size > 500*1024*1024){showToast('500MB 이하 파일만 업로드 가능해요',true);return;}
+
+  const key = getVideoKey();
+  const path = `videos/${currentTeacher.id}/${currentDate}/${Date.now()}_${file.name}`;
+  const sRef = storageRef(storage, path);
+  const uploadTask = uploadBytesResumable(sRef, file);
+
+  // 진행바 표시
+  const progressWrap = document.getElementById('uploadProgressWrap');
+  const progressBar  = document.getElementById('uploadProgressBar');
+  const progressPct  = document.getElementById('uploadPercent');
+  const progressName = document.getElementById('uploadFileName');
+  progressWrap.classList.add('show');
+  progressName.textContent = file.name;
+
+  uploadTask.on('state_changed',
+    snapshot => {
+      const pct = Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
+      progressBar.style.width = pct+'%';
+      progressPct.textContent = pct+'%';
+    },
+    err => {
+      progressWrap.classList.remove('show');
+      showToast('업로드 실패: '+err.message, true);
+    },
+    async () => {
+      const url = await getDownloadURL(uploadTask.snapshot.ref);
+      progressWrap.classList.remove('show');
+      progressBar.style.width='0%';
+
+      // DB에 저장
+      const videoEntry = {
+        name: file.name,
+        url,
+        path,
+        size: file.size,
+        uploadedAt: Date.now()
+      };
+      const existingList = videos[key] ? Object.values(videos[key]) : [];
+      const newId = 'v'+Date.now();
+      if(!videos[key]) videos[key]={};
+      videos[key][newId] = videoEntry;
+      await set(dbRef(db,'videos/'+key), videos[key]);
+
+      showToast('영상이 업로드되었습니다 🎬');
+      // 파일 input 초기화
+      document.getElementById('videoFileInput').value='';
+    }
+  );
+}
+
+function renderVideoList() {
+  if(!currentDate){
+    document.getElementById('videoList').innerHTML=`<div class="video-empty">날짜를 선택하면 영상을 업로드할 수 있어요</div>`;
+    return;
+  }
+  const key=getVideoKey();
+  const list=videos[key]?Object.entries(videos[key]):[];
+  if(list.length===0){
+    document.getElementById('videoList').innerHTML=`<div class="video-empty">아직 업로드된 영상이 없어요</div>`;
+    return;
+  }
+  document.getElementById('videoList').innerHTML=list.map(([vid,v])=>{
+    const sizeMB=(v.size/1024/1024).toFixed(1);
+    const isOpen=openVideoId===vid;
+    return `
+      <div class="video-item" id="vitem_${vid}">
+        <div class="video-item-header">
+          <div class="video-item-info">
+            <div class="video-item-icon">🎬</div>
+            <div>
+              <div class="video-item-name">${v.name}</div>
+              <div class="video-item-size">${sizeMB}MB</div>
+            </div>
+          </div>
+          <div class="video-item-btns">
+            <button class="play-btn" onclick="window.toggleVideo('${vid}')">
+              ${isOpen?'⏹ 닫기':'▶ 재생'}
+            </button>
+            <button class="play-btn" onclick="window.downloadVideo('${v.url}','${v.name}')">⬇ 저장</button>
+            <button class="video-del-btn" onclick="window.confirmDelVideo('${vid}','${v.name}','${v.path}')">🗑</button>
+          </div>
+        </div>
+        <div class="video-player-wrap ${isOpen?'show':''}" id="vplayer_${vid}">
+          ${isOpen?`<video controls src="${v.url}" preload="metadata"></video>`:''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleVideo(vid) {
+  openVideoId = openVideoId===vid ? null : vid;
+  renderVideoList();
+  if(openVideoId) {
+    setTimeout(()=>{
+      const el=document.getElementById('vitem_'+vid);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    },60);
+  }
+}
+
+function confirmDelVideo(vid, name, path) {
+  showConfirm('🎬', '영상을 삭제할까요?', `"${name}" 파일이 완전히 삭제돼요.`, async()=>{
+    try {
+      // Storage에서 삭제
+      const sRef=storageRef(storage,path);
+      await deleteObject(sRef);
+    } catch(e){ console.warn('Storage 삭제 실패',e); }
+    // DB에서 삭제
+    const key=getVideoKey();
+    if(videos[key]&&videos[key][vid]) {
+      delete videos[key][vid];
+      await set(dbRef(db,'videos/'+key), videos[key]);
+    }
+    openVideoId=null;
+    showToast('영상이 삭제되었습니다');
+  });
+}
+
+// 드래그 앤 드롭
+const uploadArea = document.getElementById('videoUploadArea');
+uploadArea.addEventListener('dragover', e=>{ e.preventDefault(); uploadArea.classList.add('dragover'); });
+uploadArea.addEventListener('dragleave', ()=>uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', e=>{
+  e.preventDefault(); uploadArea.classList.remove('dragover');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('video/')) {
+    const dt=new DataTransfer(); dt.items.add(file);
+    document.getElementById('videoFileInput').files=dt.files;
+    handleVideoUpload({target:{files:[file]}});
+  } else { showToast('영상 파일만 업로드 가능해요',true); }
+});
+
+// ── LOG ROWS ──
+function getClassStudents() {
+  const ids=classStudents[currentTeacher.id]||[];
+  return students.filter(s=>ids.includes(s.id)).sort((a,b)=>a.no-b.no);
+}
+function renderLogRows() {
+  if(!currentDate){document.getElementById('logRows').innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-size:14px">날짜를 먼저 추가해주세요</div>`;return;}
+  const cs=getClassStudents();
+  if(cs.length===0){document.getElementById('logRows').innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-size:14px">아래에서 수강생을 먼저 추가해주세요</div>`;return;}
+  document.getElementById('logRows').innerHTML=cs.map(s=>buildRow(s)).join('');
+}
+function buildRow(s) {
+  const key=`${currentTeacher.id}_${s.id}_${currentDate.replace(/-/g,'_')}`;
+  const log=logs[key]||{};
+  const attend=log.attend||'',score=log.score||'',hw=log.hw||'',note=log.note||'';
+  const isOpen=openRowKey===key;
+  const aBadge=attend?`<div class="a-badge a-${attend}">${attend}</div>`:`<div class="a-badge a-none">-</div>`;
+  const sBadge=score?`<div class="s-badge s-${score}">${score}</div>`:`<div class="s-badge">-</div>`;
+  const hwHtml=hw==='done'?'<span class="hw-done">✓완료</span>':hw==='partial'?'<span class="hw-partial">△부분</span>':hw==='none'?'<span class="hw-none">✗미제출</span>':'<span class="hw-empty">-</span>';
+  return `
+    <div class="student-log-row" id="row_${key}">
+      <div class="log-row-summary" onclick="window.toggleRow('${key}')">
+        <div><div class="log-sname">${s.name}</div><div class="log-sgrade">${s.grade} · ${s.major}</div></div>
+        <div style="display:flex;justify-content:center">${aBadge}</div>
+        <div style="display:flex;justify-content:center">${sBadge}</div>
+        <div class="hw-cell">${hwHtml}</div>
+      </div>
+      <div class="log-expand ${isOpen?'open':''}" id="expand_${key}">
+        <div class="field-label">출결</div>
+        <div class="attend-row">
+          ${['O','X','△'].map(v=>`<button class="attend-btn ${attend===v?'sel-'+v:''}" onclick="window.setField('${key}','attend','${v}')">${v==='O'?'✓ 출석':v==='X'?'✗ 결석':'△ 지각'}</button>`).join('')}
+        </div>
+        <div class="field-label">수업 평가</div>
+        <div class="score-row">
+          ${['S','A','B','C','D'].map(v=>`<button class="score-btn ${score===v?'active':''}" onclick="window.setField('${key}','score','${v}')">${v}</button>`).join('')}
+        </div>
+        <div class="field-label">숙제 확인</div>
+        <div class="hw-row">
+          <button class="hw-btn ${hw==='done'?'sel-done':''}"       onclick="window.setField('${key}','hw','done')">✓ 완료</button>
+          <button class="hw-btn ${hw==='partial'?'sel-partial':''}" onclick="window.setField('${key}','hw','partial')">△ 부분</button>
+          <button class="hw-btn ${hw==='none'?'sel-none':''}"       onclick="window.setField('${key}','hw','none')">✗ 미제출</button>
+        </div>
+        <div class="field-label">메모</div>
+        <textarea class="note-input" rows="3" placeholder="수업 내용, 피드백 메모..." id="note_${key}">${note}</textarea>
+        <div class="save-row">
+          <button class="save-btn" id="savebtn_${key}" onclick="window.saveRow('${key}')">💾 저장</button>
+        </div>
+      </div>
+    </div>`;
+}
+function toggleRow(key) {
+  openRowKey=openRowKey===key?null:key; renderLogRows();
+  if(openRowKey) setTimeout(()=>{const el=document.getElementById('expand_'+key);if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+}
+function setField(key,field,val) {
+  if(!logs[key])logs[key]={};
+  logs[key][field]=logs[key][field]===val?'':val;
+  const sid=key.split('_')[1];
+  const s=students.find(st=>st.id===sid); if(!s) return;
+  const el=document.getElementById('row_'+key); if(!el) return;
+  const tmp=document.createElement('div'); tmp.innerHTML=buildRow(s); el.replaceWith(tmp.firstElementChild);
+}
+async function saveRow(key) {
+  const noteEl=document.getElementById('note_'+key);
+  if(noteEl){if(!logs[key])logs[key]={};logs[key].note=noteEl.value;}
+  const btn=document.getElementById('savebtn_'+key);
+  if(btn){btn.textContent='저장 중...';btn.classList.add('saving-btn');}
+  try{await set(dbRef(db,'logs/'+key),logs[key]||{});showToast('저장되었습니다 ✓');}
+  catch(e){showToast('저장 실패',true);}
+}
+
+// ── 반 학생 관리 ──
+function renderClassStudentsList() {
+  const ids=classStudents[currentTeacher.id]||[];
+  const cs=students.filter(s=>ids.includes(s.id)).sort((a,b)=>a.no-b.no);
+  const wrap=document.getElementById('classStudentsList');
+  if(cs.length===0){wrap.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px">등록된 수강생이 없어요<br>위 버튼으로 추가해주세요</div>`;return;}
+  wrap.innerHTML=cs.map(s=>`
+    <div class="class-student-row">
+      <div class="cs-info"><div class="cs-name">${s.name}</div><div class="cs-sub">${s.grade} · ${s.major}</div></div>
+      <button class="remove-btn" onclick="window.confirmRemoveClassStudent('${s.id}','${s.name}')">제외</button>
+    </div>`).join('');
+}
+function openAddClassStudentModal() {
+  const ids=new Set(classStudents[currentTeacher.id]||[]);
+  const available=students.filter(s=>!ids.has(s.id));
+  _pickedIds=new Set();
+  document.getElementById('addClassStudentSub').textContent=currentTeacher.name+' 선생님 반에 추가할 학생을 선택하세요';
+  document.getElementById('studentPickList').innerHTML=available.length===0
+    ?`<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px">추가 가능한 학생이 없어요</div>`
+    :available.map(s=>`
+      <div class="student-pick-row" id="pick_${s.id}" onclick="window.togglePick('${s.id}')">
+        <div class="pick-check" id="check_${s.id}"></div>
+        <div><div class="pick-name">${s.name}</div><div class="pick-sub">${s.grade} · ${s.major}</div></div>
+      </div>`).join('');
+  document.getElementById('addClassStudentModal').classList.add('open');
+}
+function togglePick(sid) {
+  if(_pickedIds.has(sid)){_pickedIds.delete(sid);document.getElementById('check_'+sid).classList.remove('checked');document.getElementById('check_'+sid).textContent='';}
+  else{_pickedIds.add(sid);document.getElementById('check_'+sid).classList.add('checked');document.getElementById('check_'+sid).textContent='✓';}
+}
+function closeAddClassStudentModal(){document.getElementById('addClassStudentModal').classList.remove('open');}
+async function confirmAddClassStudents(){
+  if(_pickedIds.size===0){showToast('학생을 선택해주세요',true);return;}
+  const tid=currentTeacher.id;
+  const cur=new Set(classStudents[tid]||[]);
+  _pickedIds.forEach(id=>cur.add(id));
+  const newList=[...cur];
+  await set(dbRef(db,'classStudents/'+tid),newList);
+  classStudents[tid]=newList;
+  closeAddClassStudentModal();
+  showToast(_pickedIds.size+'명이 추가되었습니다 ✓');
+}
+function confirmRemoveClassStudent(sid,name){
+  showConfirm('👤',name+' 학생을 이 반에서 제외할까요?','전체 수강생 목록에는 유지되고 이 반에서만 빠져요.',async()=>{
+    const tid=currentTeacher.id;
+    const newList=(classStudents[tid]||[]).filter(id=>id!==sid);
+    await set(dbRef(db,'classStudents/'+tid),newList);
+    classStudents[tid]=newList;
+    showToast(name+' 학생이 이 반에서 제외되었습니다');
+  });
+}
+
+// ── DATE MODAL ──
+function openDateModal(){document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];document.getElementById('dateModal').classList.add('open');}
+function closeDateModal(){document.getElementById('dateModal').classList.remove('open');}
+async function confirmAddDate(){
+  const val=document.getElementById('dateInput').value; if(!val) return;
+  const tid=currentTeacher.id;
+  if(!teacherDates[tid]) teacherDates[tid]=[];
+  if(!teacherDates[tid].includes(val)){teacherDates[tid].push(val);teacherDates[tid].sort((a,b)=>b.localeCompare(a));await set(dbRef(db,'dates/'+tid),teacherDates[tid]);}
+  currentDate=val; closeDateModal(); renderDateTabs(); renderHwSection(); renderVideoList(); renderLogRows();
+  showToast('날짜가 추가되었습니다');
+}
+
+// ── CONFIRM ──
+function showConfirm(icon,title,sub,cb){
+  document.getElementById('confirmIcon').textContent=icon;
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmSub').textContent=sub;
+  window._confirmCb=cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open');window._confirmCb=null;}
+// confirmOkBtn handled via addEventListener below
+
+// ── TOAST ──
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(isError?' error':'');t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+['dateModal','studentModal','addClassStudentModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+document.getElementById('confirmOverlay').addEventListener('click',function(e){if(e.target===this)closeConfirm();});
+// confirmOkBtn is handled in the inline script below
+
+// 영상 다운로드 (cross-origin blob 방식)
+async function downloadVideo(url, name) {
+  showToast('다운로드 준비 중... ⬇');
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+    showToast('다운로드 시작됩니다 ✓');
+  } catch(e) {
+    showToast('다운로드 실패: '+e.message, true);
+  }
+}
+
+Object.assign(window,{
+  openStudentModal,openEditStudent,closeStudentModal,confirmStudent,confirmDelStudent,
+  selectTeacher,goMain,selectDate,confirmDelDate,openDateModal,closeDateModal,confirmAddDate,
+  saveHw,handleVideoUpload,toggleVideo,confirmDelVideo,downloadVideo,
+  toggleRow,setField,saveRow,
+  openAddClassStudentModal,togglePick,closeAddClassStudentModal,confirmAddClassStudents,confirmRemoveClassStudent,
+  closeConfirm
+});
+
+initData();
+</script>
+<script>
+// 삭제 확인 버튼 - 일반 script로 분리하여 모듈 스코프 문제 해결
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('confirmOkBtn').addEventListener('click', function() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    if (window._confirmCb) {
+      var cb = window._confirmCb;
+      window._confirmCb = null;
+      cb();
+    }
+  });
+});
+</script>
+</body>
+</html>
